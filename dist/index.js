@@ -45,12 +45,23 @@ function createCheck(check_name, title, annotations) {
         const res = yield octokit.checks.listForRef(Object.assign(Object.assign({ check_name }, github.context.repo), { ref: github.context.sha }));
         core.info("res");
         core.info(JSON.stringify(res));
-        const check_run_id = res.data.check_runs[0].id;
-        yield octokit.checks.update(Object.assign(Object.assign({}, github.context.repo), { check_run_id, output: {
-                title,
-                summary: `${annotations.length} errors(s) found`,
-                annotations
-            } }));
+        if (res.data.check_runs.length > 0) {
+            core.info("updating check");
+            const check_run_id = res.data.check_runs[0].id;
+            yield octokit.checks.update(Object.assign(Object.assign({}, github.context.repo), { check_run_id, output: {
+                    title,
+                    summary: `${annotations.length} errors(s) found`,
+                    annotations
+                } }));
+        }
+        else {
+            core.info("creating new check");
+            yield octokit.checks.create(Object.assign(Object.assign({}, github.context.repo), { output: {
+                    title,
+                    summary: `${annotations.length} errors(s) found`,
+                    annotations
+                } }));
+        }
     });
 }
 function run() {

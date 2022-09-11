@@ -26,17 +26,30 @@ async function createCheck(check_name: string, title: string, annotations: Annot
   core.info("res");
   core.info(JSON.stringify(res));
 
-  const check_run_id = res.data.check_runs[0].id;
+  if (res.data.check_runs.length > 0) {
+    core.info("updating check");
+    const check_run_id = res.data.check_runs[0].id;
 
-  await octokit.checks.update({
-    ...github.context.repo,
-    check_run_id,
-    output: {
-      title,
-      summary: `${annotations.length} errors(s) found`,
-      annotations
-    }
-  });
+    await octokit.checks.update({
+      ...github.context.repo,
+      check_run_id,
+      output: {
+        title,
+        summary: `${annotations.length} errors(s) found`,
+        annotations
+      }
+    });
+  } else {
+    core.info("creating new check");
+    await octokit.checks.create({
+      ...github.context.repo,
+      output: {
+        title,
+        summary: `${annotations.length} errors(s) found`,
+        annotations
+      }
+    });
+  }
 }
 
 
