@@ -30,7 +30,8 @@ async function createCheck(check_name: string, title: string, annotations: Annot
     core.info("creating new check");
     const create_resp = await octokit.checks.create({
       ...github.context.repo,
-      sha: github.context.sha
+      head_sha: github.context.sha,
+      name: check_name
     });
     core.info(JSON.stringify(create_resp));
   }

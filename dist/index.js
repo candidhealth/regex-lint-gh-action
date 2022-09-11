@@ -47,7 +47,7 @@ function createCheck(check_name, title, annotations) {
         core.info(JSON.stringify(res));
         if (res.data.check_runs.length === 0) {
             core.info("creating new check");
-            const create_resp = yield octokit.checks.create(Object.assign(Object.assign({}, github.context.repo), { sha: github.context.sha }));
+            const create_resp = yield octokit.checks.create(Object.assign(Object.assign({}, github.context.repo), { head_sha: github.context.sha, name: check_name }));
             core.info(JSON.stringify(create_resp));
         }
         res = yield octokit.checks.listForRef(Object.assign(Object.assign({ check_name }, github.context.repo), { ref: github.context.sha }));
