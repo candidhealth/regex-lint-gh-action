@@ -56,11 +56,13 @@ function createCheck(check_name, title, annotations) {
         if (res.data.check_runs.length > 0) {
             core.info("updating check");
             const check_run_id = res.data.check_runs[0].id;
-            yield octokit.checks.update(Object.assign(Object.assign({}, github.context.repo), { check_run_id, output: {
+            const update_resp = yield octokit.checks.update(Object.assign(Object.assign({}, github.context.repo), { check_run_id, output: {
                     title,
                     summary: `${annotations.length} errors(s) found`,
                     annotations
                 } }));
+            core.info("update resp");
+            core.info(JSON.stringify(update_resp));
         }
     });
 }

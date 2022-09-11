@@ -48,7 +48,7 @@ async function createCheck(check_name: string, title: string, annotations: Annot
     core.info("updating check");
     const check_run_id = res.data.check_runs[0].id;
 
-    await octokit.checks.update({
+    const update_resp = await octokit.checks.update({
       ...github.context.repo,
       check_run_id,
       output: {
@@ -57,6 +57,8 @@ async function createCheck(check_name: string, title: string, annotations: Annot
         annotations
       }
     });
+    core.info("update resp")
+    core.info(JSON.stringify(update_resp))
   }
 }
 
