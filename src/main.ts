@@ -23,6 +23,8 @@ async function createCheck(check_name: string, title: string, annotations: Annot
     ...github.context.repo,
     ref: github.context.sha
   });
+  console.log("res");
+  console.log(res);
 
   const check_run_id = res.data.check_runs[0].id;
 
@@ -39,12 +41,12 @@ async function createCheck(check_name: string, title: string, annotations: Annot
 
 
 async function run(): Promise<void> {
-  core.warning("Running action...");
+  console.log("Running action...");
   try {
     await createCheck("test-check-name", "test-check-name", [{ path: "README.md", start_line: 1, end_line: 1, start_column: 1, end_column: 2, annotation_level: "failure", message: "Test check failure" }])
   } catch (error) {
     if (error instanceof Error) {
-      core.warning("There was an error");
+      core.warning("There was an error in run");
       core.setFailed(error.message)
     }
   }
