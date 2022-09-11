@@ -42,21 +42,21 @@ const { GITHUB_TOKEN } = process.env;
 function createCheck(check_name, title, annotations) {
     return __awaiter(this, void 0, void 0, function* () {
         const octokit = new rest_1.Octokit({ auth: GITHUB_TOKEN });
-        const res = yield octokit.checks.listForRef(Object.assign(Object.assign({ check_name }, github.context.repo), { ref: github.context.sha }));
+        let res = yield octokit.checks.listForRef(Object.assign(Object.assign({ check_name }, github.context.repo), { ref: github.context.sha }));
         core.info("res");
+        core.info(JSON.stringify(res));
+        if (res.data.check_runs.length === 0) {
+            core.info("creating new check");
+            const create_resp = yield octokit.checks.create(Object.assign(Object.assign({}, github.context.repo), { sha: github.context.sha }));
+            core.info(JSON.stringify(create_resp));
+        }
+        res = yield octokit.checks.listForRef(Object.assign(Object.assign({ check_name }, github.context.repo), { ref: github.context.sha }));
+        core.info("new res");
         core.info(JSON.stringify(res));
         if (res.data.check_runs.length > 0) {
             core.info("updating check");
             const check_run_id = res.data.check_runs[0].id;
             yield octokit.checks.update(Object.assign(Object.assign({}, github.context.repo), { check_run_id, output: {
-                    title,
-                    summary: `${annotations.length} errors(s) found`,
-                    annotations
-                } }));
-        }
-        else {
-            core.info("creating new check");
-            yield octokit.checks.create(Object.assign(Object.assign({}, github.context.repo), { output: {
                     title,
                     summary: `${annotations.length} errors(s) found`,
                     annotations
