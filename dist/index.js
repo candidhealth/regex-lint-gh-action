@@ -53,14 +53,15 @@ function createCheck(check_name, title, annotations) {
 }
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
+        core.warning("Running action...");
         try {
-            const ms = core.getInput('milliseconds');
-            core.setOutput('time', new Date().toTimeString());
             yield createCheck("test-check-name", "test-check-name", [{ path: "README.md", start_line: 1, end_line: 1, start_column: 1, end_column: 2, annotation_level: "failure", message: "Test check failure" }]);
         }
         catch (error) {
-            if (error instanceof Error)
+            if (error instanceof Error) {
+                core.warning("There was an error");
                 core.setFailed(error.message);
+            }
         }
     });
 }
