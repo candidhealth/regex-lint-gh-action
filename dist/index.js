@@ -43,6 +43,8 @@ function createCheck(check_name, title, annotations) {
     return __awaiter(this, void 0, void 0, function* () {
         const octokit = new rest_1.Octokit({ auth: GITHUB_TOKEN });
         const res = yield octokit.checks.listForRef(Object.assign(Object.assign({ check_name }, github.context.repo), { ref: github.context.sha }));
+        core.info("res");
+        core.info(JSON.stringify(res));
         const check_run_id = res.data.check_runs[0].id;
         yield octokit.checks.update(Object.assign(Object.assign({}, github.context.repo), { check_run_id, output: {
                 title,
@@ -53,13 +55,13 @@ function createCheck(check_name, title, annotations) {
 }
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
-        core.warning("Running action...");
+        core.info("Running action...");
         try {
             yield createCheck("test-check-name", "test-check-name", [{ path: "README.md", start_line: 1, end_line: 1, start_column: 1, end_column: 2, annotation_level: "failure", message: "Test check failure" }]);
         }
         catch (error) {
             if (error instanceof Error) {
-                core.warning("There was an error");
+                core.warning("There was an error in run");
                 core.setFailed(error.message);
             }
         }
