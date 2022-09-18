@@ -78,6 +78,7 @@ async function run(): Promise<void> {
   const annotations = [{ path: "README.md", start_line: 1, end_line: 1, start_column: 1, end_column: 2, annotation_level: "failure", message: "Fix this line" }]
   try {
     await createCheck("test-check-name", annotations as Annotation[])
+    core.warning("Here is a different annotation", { title: "annotation title", file: "README.md", startLine: 1, endLine: 1, startColumn: 1, endColumn: 2 })
   } catch (error) {
     if (error instanceof Error) {
       core.warning("There was an error in run");

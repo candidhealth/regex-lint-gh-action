@@ -102,6 +102,7 @@ function run() {
         const annotations = [{ path: "README.md", start_line: 1, end_line: 1, start_column: 1, end_column: 2, annotation_level: "failure", message: "Fix this line" }];
         try {
             yield createCheck("test-check-name", annotations);
+            core.warning("Here is a different annotation", { title: "annotation title", file: "README.md", startLine: 1, endLine: 1, startColumn: 1, endColumn: 2 });
         }
         catch (error) {
             if (error instanceof Error) {
