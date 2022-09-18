@@ -49,21 +49,53 @@ function createCheck(check_name, title, annotations) {
         core.info(JSON.stringify(res));
         if (res.data.check_runs.length === 0) {
             core.info("creating new check");
-            const create_resp = yield octokit.checks.create(Object.assign(Object.assign({}, github.context.repo), { head_sha: github.context.ref, name: check_name, output: {
+            const create_resp = yield octokit.checks.create({
+                owner: github.context.repo.owner,
+                repo: github.context.repo.repo,
+                head_sha: github.context.sha,
+                name: check_name,
+                output: {
                     title,
                     summary: `${annotations.length} errors(s) found`,
                     text: "Please fix this",
                     annotations
-                } }));
+                },
+                status: "completed",
+                conclusion: "failure"
+            });
             core.info(JSON.stringify(create_resp));
+        }
+        else {
+            core.info("updating existing check");
+            const update_resp = yield octokit.checks.update({
+                check_run_id: res.data.check_runs[0].id,
+                owner: github.context.repo.owner,
+                repo: github.context.repo.repo,
+                head_sha: github.context.sha,
+                name: check_name,
+                output: {
+                    title,
+                    summary: `${annotations.length} errors(s) found`,
+                    text: "Please fix this",
+                    annotations
+                },
+                status: "completed",
+                conclusion: "failure"
+            });
+            core.info(JSON.stringify(update_resp));
         }
     });
 }
+// async function statusFail() {
+//   const octokit = new Octokit({ auth: GITHUB_TOKEN });
+//   await octokit.sta
+// }
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         core.info("Running action...");
         try {
             yield createCheck("test-check-name", "test-check-name", [{ path: "README.md", start_line: 1, end_line: 1, start_column: 1, end_column: 2, annotation_level: "failure", message: "Test check failure" }]);
+            // await statusFail()
         }
         catch (error) {
             if (error instanceof Error) {
