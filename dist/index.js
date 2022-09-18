@@ -42,12 +42,12 @@ const { GITHUB_TOKEN } = process.env;
 function createCheck(check_name, title, annotations) {
     return __awaiter(this, void 0, void 0, function* () {
         const octokit = new rest_1.Octokit({ auth: GITHUB_TOKEN });
-        const res = yield octokit.checks.listForRef(Object.assign(Object.assign({ check_name }, github.context.repo), { ref: github.context.sha }));
+        const res = yield octokit.checks.listForRef(Object.assign(Object.assign({ check_name }, github.context.repo), { ref: github.context.ref }));
         core.info("res");
         core.info(JSON.stringify(res));
         if (res.data.check_runs.length === 0) {
             core.info("creating new check");
-            const create_resp = yield octokit.checks.create(Object.assign(Object.assign({}, github.context.repo), { head_sha: github.context.sha, name: check_name, output: {
+            const create_resp = yield octokit.checks.create(Object.assign(Object.assign({}, github.context.repo), { head_sha: github.context.ref, name: check_name, output: {
                     title,
                     summary: `${annotations.length} errors(s) found`,
                     text: "Please fix this",

@@ -21,7 +21,7 @@ async function createCheck(check_name: string, title: string, annotations: Annot
   const res = await octokit.checks.listForRef({
     check_name,
     ...github.context.repo,
-    ref: github.context.sha
+    ref: github.context.ref
   });
   core.info("res");
   core.info(JSON.stringify(res));
@@ -30,7 +30,7 @@ async function createCheck(check_name: string, title: string, annotations: Annot
     core.info("creating new check");
     const create_resp = await octokit.checks.create({
       ...github.context.repo,
-      head_sha: github.context.sha,
+      head_sha: github.context.ref,
       name: check_name,
       output: {
         title,
