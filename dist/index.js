@@ -100,7 +100,7 @@ function run() {
         core.info("Running action...");
         try {
             yield createCheck("test-check-name", [{ path: "README.md", start_line: 1, end_line: 1, start_column: 1, end_column: 2, annotation_level: "failure", message: "Test check failure" }]);
-            // await statusFail()
+            core.setFailed("Check the annotations");
         }
         catch (error) {
             if (error instanceof Error) {
