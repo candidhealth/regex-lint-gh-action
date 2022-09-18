@@ -48,9 +48,11 @@ function loadConfig() {
 function parseConfig(config) {
     const lintConfigs = [];
     for (const entry of config) {
+        core.info(JSON.stringify(entry));
+        core.info(typeof entry);
         lintConfigs.push({
-            name: entry.get("name"),
-            pattern: entry.get("pattern")
+            name: entry.name,
+            pattern: entry.pattern
         });
     }
     return lintConfigs;

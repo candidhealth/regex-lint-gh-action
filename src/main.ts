@@ -26,9 +26,11 @@ async function loadConfig() {
 function parseConfig(config: unknown): LintConfig[] {
   const lintConfigs: LintConfig[] = [];
   for (const entry of config as any[]) {
+    core.info(JSON.stringify(entry));
+    core.info(typeof entry);
     lintConfigs.push({
-      name: entry.get("name"),
-      pattern: entry.get("pattern")
+      name: entry.name,
+      pattern: entry.pattern
     });
   }
 
