@@ -75,7 +75,7 @@ async function createCheck(title: string, annotations: Annotation[]) {
 
 async function run(): Promise<void> {
   core.info("Running action...");
-  const annotations = [{ path: "README.md", start_line: 1, end_line: 1, start_column: 1, end_column: 2, annotation_level: "failure", message: "Test check failure" }]
+  const annotations = [{ path: "README.md", start_line: 1, end_line: 1, start_column: 1, end_column: 2, annotation_level: "failure", message: "Fix this line" }]
   try {
     await createCheck("test-check-name", annotations as Annotation[])
     core.setFailed("Check the annotations")

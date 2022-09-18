@@ -99,7 +99,7 @@ function createCheck(title, annotations) {
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         core.info("Running action...");
-        const annotations = [{ path: "README.md", start_line: 1, end_line: 1, start_column: 1, end_column: 2, annotation_level: "failure", message: "Test check failure" }];
+        const annotations = [{ path: "README.md", start_line: 1, end_line: 1, start_column: 1, end_column: 2, annotation_level: "failure", message: "Fix this line" }];
         try {
             yield createCheck("test-check-name", annotations);
             core.setFailed("Check the annotations");
