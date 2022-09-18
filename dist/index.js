@@ -40,6 +40,7 @@ const github = __importStar(__nccwpck_require__(5438));
 const rest_1 = __nccwpck_require__(5375);
 const { GITHUB_TOKEN } = process.env;
 function createCheck(title, annotations) {
+    var _a;
     return __awaiter(this, void 0, void 0, function* () {
         const octokit = new rest_1.Octokit({ auth: GITHUB_TOKEN });
         const res = yield octokit.checks.listForRef({
@@ -57,7 +58,7 @@ function createCheck(title, annotations) {
             const create_resp = yield octokit.checks.create({
                 owner: github.context.repo.owner,
                 repo: github.context.repo.repo,
-                head_sha: github.context.sha,
+                head_sha: (_a = github.context.payload.pull_request) === null || _a === void 0 ? void 0 : _a.sha,
                 name: github.context.job,
                 output: {
                     title,
