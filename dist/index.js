@@ -98,13 +98,19 @@ function createCheck(title, annotations) {
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         core.info("Running action...");
+        const annotations = [{ path: "README.md", start_line: 1, end_line: 1, start_column: 1, end_column: 2, annotation_level: "failure", message: "Test check failure" }];
         try {
-            yield createCheck("test-check-name", [{ path: "README.md", start_line: 1, end_line: 1, start_column: 1, end_column: 2, annotation_level: "failure", message: "Test check failure" }]);
+            yield createCheck("test-check-name", annotations);
             core.setFailed("Check the annotations");
         }
         catch (error) {
             if (error instanceof Error) {
                 core.warning("There was an error in run");
+                core.setOutput("test-check-name", {
+                    summary: `${annotations.length} errors(s) found`,
+                    text: "Please fix this",
+                    annotations
+                });
                 core.setFailed(error.message);
             }
         }
