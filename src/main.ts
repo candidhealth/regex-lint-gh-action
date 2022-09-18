@@ -23,6 +23,8 @@ async function createCheck(check_name: string, title: string, annotations: Annot
     ...github.context.repo,
     ref: github.context.ref
   });
+  core.info("github context")
+  core.info(JSON.stringify(github.context))
   core.info("res");
   core.info(JSON.stringify(res));
 

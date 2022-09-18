@@ -43,6 +43,8 @@ function createCheck(check_name, title, annotations) {
     return __awaiter(this, void 0, void 0, function* () {
         const octokit = new rest_1.Octokit({ auth: GITHUB_TOKEN });
         const res = yield octokit.checks.listForRef(Object.assign(Object.assign({ check_name }, github.context.repo), { ref: github.context.ref }));
+        core.info("github context");
+        core.info(JSON.stringify(github.context));
         core.info("res");
         core.info(JSON.stringify(res));
         if (res.data.check_runs.length === 0) {
