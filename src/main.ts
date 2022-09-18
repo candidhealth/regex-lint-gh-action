@@ -11,11 +11,28 @@ interface Annotation {
   message: string;
 }
 
+interface LintConfig {
+  name: string;
+  pattern: string;
+}
+
 async function loadConfig() {
   const file = core.getInput('file');
   const content = await fs.readFile(file, 'utf8');
 
   return yaml.load(content);
+}
+
+function parseConfig(config: unknown): LintConfig[] {
+  const lintConfigs: LintConfig[] = [];
+  for (const entry of config as any[]) {
+    lintConfigs.push({
+      name: entry.get("name"),
+      pattern: entry.get("pattern")
+    });
+  }
+
+  return lintConfigs;
 }
 
 async function run(): Promise<void> {
@@ -26,7 +43,8 @@ async function run(): Promise<void> {
       return;
     }
 
-    core.info(JSON.stringify(config));
+    const lintConfigs = parseConfig(config);
+    core.info(JSON.stringify(lintConfigs));
   } catch (error) {
     if (error instanceof Error) {
       core.warning("There was an error in run");

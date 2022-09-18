@@ -45,6 +45,16 @@ function loadConfig() {
         return yaml.load(content);
     });
 }
+function parseConfig(config) {
+    const lintConfigs = [];
+    for (const entry of config) {
+        lintConfigs.push({
+            name: entry.get("name"),
+            pattern: entry.get("pattern")
+        });
+    }
+    return lintConfigs;
+}
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -53,7 +63,8 @@ function run() {
                 core.setFailed('Error in reading the input yaml file');
                 return;
             }
-            core.info(JSON.stringify(config));
+            const lintConfigs = parseConfig(config);
+            core.info(JSON.stringify(lintConfigs));
         }
         catch (error) {
             if (error instanceof Error) {
