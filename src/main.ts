@@ -55,7 +55,7 @@ async function createCheck(title: string, annotations: Annotation[]) {
       head_sha: github.context.sha,
       name: github.context.job,
       output: {
-        title,
+        title: title,
         summary: `${annotations.length} errors(s) found`,
         text: "Please fix this",
         annotations
@@ -75,7 +75,7 @@ async function createCheck(title: string, annotations: Annotation[]) {
 
 async function run(): Promise<void> {
   core.info("Running action...");
-  const annotations = [{ path: "README.md", start_line: 1, end_line: 1, start_column: 1, end_column: 2, annotation_level: "failure", message: "Fix this line" }]
+  const annotations = [{ title: "other title", path: "README.md", start_line: 1, end_line: 1, start_column: 1, end_column: 2, annotation_level: "failure", message: "Fix this line" }]
   try {
     await createCheck("test-check-name", annotations as Annotation[])
     core.warning("Here is a different annotation", { title: "annotation title", file: "README.md", startLine: 1, endLine: 1, startColumn: 1, endColumn: 2 })

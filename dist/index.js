@@ -80,7 +80,7 @@ function createCheck(title, annotations) {
                 head_sha: github.context.sha,
                 name: github.context.job,
                 output: {
-                    title,
+                    title: title,
                     summary: `${annotations.length} errors(s) found`,
                     text: "Please fix this",
                     annotations
@@ -99,7 +99,7 @@ function createCheck(title, annotations) {
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         core.info("Running action...");
-        const annotations = [{ path: "README.md", start_line: 1, end_line: 1, start_column: 1, end_column: 2, annotation_level: "failure", message: "Fix this line" }];
+        const annotations = [{ title: "other title", path: "README.md", start_line: 1, end_line: 1, start_column: 1, end_column: 2, annotation_level: "failure", message: "Fix this line" }];
         try {
             yield createCheck("test-check-name", annotations);
             core.warning("Here is a different annotation", { title: "annotation title", file: "README.md", startLine: 1, endLine: 1, startColumn: 1, endColumn: 2 });
