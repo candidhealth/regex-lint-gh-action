@@ -39,10 +39,10 @@ const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
 const rest_1 = __nccwpck_require__(5375);
 const { GITHUB_TOKEN } = process.env;
-function createCheck(check_name, title, annotations) {
+function createCheck(title, annotations) {
     return __awaiter(this, void 0, void 0, function* () {
         const octokit = new rest_1.Octokit({ auth: GITHUB_TOKEN });
-        const res = yield octokit.checks.listForRef(Object.assign(Object.assign({ check_name }, github.context.repo), { ref: github.context.ref }));
+        const res = yield octokit.checks.listForRef(Object.assign(Object.assign({ check_name: github.context.job }, github.context.repo), { ref: github.context.ref }));
         core.info("github context");
         core.info(JSON.stringify(github.context));
         core.info("res");
@@ -53,7 +53,7 @@ function createCheck(check_name, title, annotations) {
                 owner: github.context.repo.owner,
                 repo: github.context.repo.repo,
                 head_sha: github.context.sha,
-                name: check_name,
+                name: github.context.job,
                 output: {
                     title,
                     summary: `${annotations.length} errors(s) found`,
@@ -72,7 +72,7 @@ function createCheck(check_name, title, annotations) {
                 owner: github.context.repo.owner,
                 repo: github.context.repo.repo,
                 head_sha: github.context.sha,
-                name: check_name,
+                name: github.context.job,
                 output: {
                     title,
                     summary: `${annotations.length} errors(s) found`,
@@ -94,7 +94,7 @@ function run() {
     return __awaiter(this, void 0, void 0, function* () {
         core.info("Running action...");
         try {
-            yield createCheck("test-check-name", "test-check-name", [{ path: "README.md", start_line: 1, end_line: 1, start_column: 1, end_column: 2, annotation_level: "failure", message: "Test check failure" }]);
+            yield createCheck("test-check-name", [{ path: "README.md", start_line: 1, end_line: 1, start_column: 1, end_column: 2, annotation_level: "failure", message: "Test check failure" }]);
             // await statusFail()
         }
         catch (error) {

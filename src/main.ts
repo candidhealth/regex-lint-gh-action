@@ -16,10 +16,10 @@ interface Annotation {
   message: string;
 }
 
-async function createCheck(check_name: string, title: string, annotations: Annotation[]) {
+async function createCheck(title: string, annotations: Annotation[]) {
   const octokit = new Octokit({ auth: GITHUB_TOKEN });
   const res = await octokit.checks.listForRef({
-    check_name,
+    check_name: github.context.job,
     ...github.context.repo,
     ref: github.context.ref
   });
@@ -34,7 +34,7 @@ async function createCheck(check_name: string, title: string, annotations: Annot
       owner: github.context.repo.owner,
       repo: github.context.repo.repo,
       head_sha: github.context.sha,
-      name: check_name,
+      name: github.context.job,
       output: {
         title,
         summary: `${annotations.length} errors(s) found`,
@@ -52,7 +52,7 @@ async function createCheck(check_name: string, title: string, annotations: Annot
       owner: github.context.repo.owner,
       repo: github.context.repo.repo,
       head_sha: github.context.sha,
-      name: check_name,
+      name: github.context.job,
       output: {
         title,
         summary: `${annotations.length} errors(s) found`,
@@ -75,7 +75,7 @@ async function createCheck(check_name: string, title: string, annotations: Annot
 async function run(): Promise<void> {
   core.info("Running action...");
   try {
-    await createCheck("test-check-name", "test-check-name", [{ path: "README.md", start_line: 1, end_line: 1, start_column: 1, end_column: 2, annotation_level: "failure", message: "Test check failure" }])
+    await createCheck("test-check-name", [{ path: "README.md", start_line: 1, end_line: 1, start_column: 1, end_column: 2, annotation_level: "failure", message: "Test check failure" }])
     // await statusFail()
   } catch (error) {
     if (error instanceof Error) {
