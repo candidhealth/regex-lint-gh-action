@@ -18,7 +18,7 @@ interface Annotation {
 
 async function createCheck(check_name: string, title: string, annotations: Annotation[]) {
   const octokit = new Octokit({ auth: GITHUB_TOKEN });
-  let res = await octokit.checks.listForRef({
+  const res = await octokit.checks.listForRef({
     check_name,
     ...github.context.repo,
     ref: github.context.sha
@@ -31,34 +31,14 @@ async function createCheck(check_name: string, title: string, annotations: Annot
     const create_resp = await octokit.checks.create({
       ...github.context.repo,
       head_sha: github.context.sha,
-      name: check_name
-    });
-    core.info(JSON.stringify(create_resp));
-  }
-
-  res = await octokit.checks.listForRef({
-    check_name,
-    ...github.context.repo,
-    ref: github.context.sha
-  });
-  core.info("new res");
-  core.info(JSON.stringify(res));
-
-  if (res.data.check_runs.length > 0) {
-    core.info("updating check");
-    const check_run_id = res.data.check_runs[0].id;
-
-    const update_resp = await octokit.checks.update({
-      ...github.context.repo,
-      check_run_id,
+      name: check_name,
       output: {
         title,
         summary: `${annotations.length} errors(s) found`,
         annotations
       }
     });
-    core.info("update resp")
-    core.info(JSON.stringify(update_resp))
+    core.info(JSON.stringify(create_resp));
   }
 }
 
