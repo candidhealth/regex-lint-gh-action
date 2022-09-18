@@ -21,7 +21,7 @@ async function createCheck(title: string, annotations: Annotation[]) {
   const res = await octokit.checks.listForRef({
     owner: github.context.repo.owner,
     repo: github.context.repo.repo,
-    check_name: github.context.workflow,
+    check_name: github.context.job,
     ref: github.context.ref
   });
   core.info("github context")
@@ -35,7 +35,7 @@ async function createCheck(title: string, annotations: Annotation[]) {
       owner: github.context.repo.owner,
       repo: github.context.repo.repo,
       head_sha: github.context.sha,
-      name: github.context.workflow,
+      name: github.context.job,
       output: {
         title,
         summary: `${annotations.length} errors(s) found`,
@@ -53,7 +53,7 @@ async function createCheck(title: string, annotations: Annotation[]) {
       owner: github.context.repo.owner,
       repo: github.context.repo.repo,
       head_sha: github.context.sha,
-      name: github.context.workflow,
+      name: github.context.job,
       output: {
         title,
         summary: `${annotations.length} errors(s) found`,
