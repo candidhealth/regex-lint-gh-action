@@ -19,8 +19,9 @@ interface Annotation {
 async function createCheck(title: string, annotations: Annotation[]) {
   const octokit = new Octokit({ auth: GITHUB_TOKEN });
   const res = await octokit.checks.listForRef({
-    check_name: github.context.job,
-    ...github.context.repo,
+    owner: github.context.repo.owner,
+    repo: github.context.repo.repo,
+    check_name: github.context.workflow,
     ref: github.context.ref
   });
   core.info("github context")
@@ -34,7 +35,7 @@ async function createCheck(title: string, annotations: Annotation[]) {
       owner: github.context.repo.owner,
       repo: github.context.repo.repo,
       head_sha: github.context.sha,
-      name: github.context.job,
+      name: github.context.workflow,
       output: {
         title,
         summary: `${annotations.length} errors(s) found`,
@@ -52,7 +53,7 @@ async function createCheck(title: string, annotations: Annotation[]) {
       owner: github.context.repo.owner,
       repo: github.context.repo.repo,
       head_sha: github.context.sha,
-      name: github.context.job,
+      name: github.context.workflow,
       output: {
         title,
         summary: `${annotations.length} errors(s) found`,

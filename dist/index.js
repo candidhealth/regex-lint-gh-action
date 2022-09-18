@@ -42,7 +42,12 @@ const { GITHUB_TOKEN } = process.env;
 function createCheck(title, annotations) {
     return __awaiter(this, void 0, void 0, function* () {
         const octokit = new rest_1.Octokit({ auth: GITHUB_TOKEN });
-        const res = yield octokit.checks.listForRef(Object.assign(Object.assign({ check_name: github.context.job }, github.context.repo), { ref: github.context.ref }));
+        const res = yield octokit.checks.listForRef({
+            owner: github.context.repo.owner,
+            repo: github.context.repo.repo,
+            check_name: github.context.workflow,
+            ref: github.context.ref
+        });
         core.info("github context");
         core.info(JSON.stringify(github.context));
         core.info("res");
@@ -53,7 +58,7 @@ function createCheck(title, annotations) {
                 owner: github.context.repo.owner,
                 repo: github.context.repo.repo,
                 head_sha: github.context.sha,
-                name: github.context.job,
+                name: github.context.workflow,
                 output: {
                     title,
                     summary: `${annotations.length} errors(s) found`,
@@ -72,7 +77,7 @@ function createCheck(title, annotations) {
                 owner: github.context.repo.owner,
                 repo: github.context.repo.repo,
                 head_sha: github.context.sha,
-                name: github.context.job,
+                name: github.context.workflow,
                 output: {
                     title,
                     summary: `${annotations.length} errors(s) found`,
