@@ -50,6 +50,7 @@ function createCheck(check_name, title, annotations) {
             const create_resp = yield octokit.checks.create(Object.assign(Object.assign({}, github.context.repo), { head_sha: github.context.sha, name: check_name, output: {
                     title,
                     summary: `${annotations.length} errors(s) found`,
+                    text: "Please fix this",
                     annotations
                 } }));
             core.info(JSON.stringify(create_resp));
