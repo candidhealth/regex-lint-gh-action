@@ -40,24 +40,25 @@ const github = __importStar(__nccwpck_require__(5438));
 const rest_1 = __nccwpck_require__(5375);
 const { GITHUB_TOKEN } = process.env;
 function createCheck(title, annotations) {
-    var _a;
+    var _a, _b;
     return __awaiter(this, void 0, void 0, function* () {
         const octokit = new rest_1.Octokit({ auth: GITHUB_TOKEN });
         const res = yield octokit.checks.listForRef({
             owner: github.context.repo.owner,
             repo: github.context.repo.repo,
-            ref: github.context.ref
+            ref: (_a = github.context.payload.pull_request) === null || _a === void 0 ? void 0 : _a.head.sha
         });
         core.info("github context");
         core.info(JSON.stringify(github.context));
         core.info("res");
         core.info(JSON.stringify(res));
-        if (res.data.check_runs.length === 0) {
+        const check_run = res.data.check_runs.find(c => c.name === github.context.job);
+        if (check_run == null) {
             core.info("creating new check");
             const create_resp = yield octokit.checks.create({
                 owner: github.context.repo.owner,
                 repo: github.context.repo.repo,
-                head_sha: (_a = github.context.payload.pull_request) === null || _a === void 0 ? void 0 : _a.head.sha,
+                head_sha: (_b = github.context.payload.pull_request) === null || _b === void 0 ? void 0 : _b.head.sha,
                 name: github.context.job,
                 output: {
                     title,
@@ -73,7 +74,7 @@ function createCheck(title, annotations) {
         else {
             core.info("updating existing check");
             const update_resp = yield octokit.checks.update({
-                check_run_id: res.data.check_runs[0].id,
+                check_run_id: check_run.id,
                 owner: github.context.repo.owner,
                 repo: github.context.repo.repo,
                 head_sha: github.context.sha,
