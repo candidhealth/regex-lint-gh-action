@@ -25,6 +25,6 @@ jobs:
       - name: Action Run
         uses: ./
         with:
-          milliseconds: 1000
+          file: .github/regex-lint.yml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
