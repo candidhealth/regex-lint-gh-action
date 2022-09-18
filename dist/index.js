@@ -46,7 +46,6 @@ function createCheck(title, annotations) {
         const res = yield octokit.checks.listForRef({
             owner: github.context.repo.owner,
             repo: github.context.repo.repo,
-            check_name: github.context.job,
             ref: github.context.ref
         });
         core.info("github context");
