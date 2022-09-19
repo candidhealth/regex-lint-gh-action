@@ -30,6 +30,11 @@ function parseConfig(config: unknown): LintConfig[] {
       name: entry.name,
       pattern: entry.pattern
     });
+    try {
+      new RegExp(entry.pattern);
+    } catch (error) {
+      core.error(`Failed to parse regex pattern: ${entry.pattern}`);
+    }
   }
 
   return lintConfigs;

@@ -1,2 +1,2 @@
 - name: No Hellos
-  pattern: '*hello*'
+  pattern: 'hello'
