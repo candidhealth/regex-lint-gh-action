@@ -129,9 +129,13 @@ function runLint(file, configuration) {
                         const matchValue = matchArray[0];
                         const startColumn = matchArray.index;
                         const endColumn = matchArray.index + matchValue.length;
-                        const message = `Found match for ${lintConfig.name}: ${matchValue}${lintConfig.documentation != null
-                            ? `\n${lintConfig.documentation}`
-                            : ''}`;
+                        const messagePrefix = `Found match for ${lintConfig.name}:`;
+                        const fencedValue = `\`\`\`${matchValue}\`\`\``;
+                        const message = [
+                            messagePrefix,
+                            fencedValue,
+                            lintConfig.documentation
+                        ].join('\n');
                         core.info(`${file}: ${lineNumber},${startColumn},${endColumn}: ${message}`);
                         annotations.push({
                             title: `Regex Lint: ${lintConfig.name}`,
