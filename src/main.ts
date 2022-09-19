@@ -82,6 +82,7 @@ function parseConfig(config: unknown): Configuration {
 
   core.info('Parsed the following configuration:');
   core.info(JSON.stringify(lintConfigs));
+  core.info('');
   return {
     includePaths: configuration['include-paths'],
     excludePaths: configuration['exclude-paths'],
@@ -98,6 +99,7 @@ async function runLint(
     !configuration.includePaths.some(pathGlob => minimatch(file, pathGlob))
   ) {
     core.info(`File did not match configured include path: ${file}`);
+    return [];
   }
 
   if (
@@ -105,6 +107,7 @@ async function runLint(
     configuration.excludePaths.some(pathGlob => minimatch(file, pathGlob))
   ) {
     core.info(`File matched configured exclude path: ${file}`);
+    return [];
   }
 
   core.info(`Running lint on ${file}...`);
@@ -173,6 +176,7 @@ async function run(): Promise<void> {
       touchedFiles.map(touchedFile => runLint(touchedFile, configuration))
     );
 
+    core.info('');
     annotationsArr.forEach(annotations => {
       annotations.forEach(annotation => {
         core.warning(annotation.message, { ...annotation });

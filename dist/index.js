@@ -96,6 +96,7 @@ function parseConfig(config) {
     }
     core.info('Parsed the following configuration:');
     core.info(JSON.stringify(lintConfigs));
+    core.info('');
     return {
         includePaths: configuration['include-paths'],
         excludePaths: configuration['exclude-paths'],
@@ -107,10 +108,12 @@ function runLint(file, configuration) {
         if (configuration.includePaths != null &&
             !configuration.includePaths.some(pathGlob => (0, minimatch_1.default)(file, pathGlob))) {
             core.info(`File did not match configured include path: ${file}`);
+            return [];
         }
         if (configuration.excludePaths != null &&
             configuration.excludePaths.some(pathGlob => (0, minimatch_1.default)(file, pathGlob))) {
             core.info(`File matched configured exclude path: ${file}`);
+            return [];
         }
         core.info(`Running lint on ${file}...`);
         const annotations = [];
@@ -161,6 +164,7 @@ function run() {
             const touchedFiles = yield getTouchedFiles();
             const configuration = parseConfig(loadedConfig);
             const annotationsArr = yield Promise.all(touchedFiles.map(touchedFile => runLint(touchedFile, configuration)));
+            core.info('');
             annotationsArr.forEach(annotations => {
                 annotations.forEach(annotation => {
                     core.warning(annotation.message, Object.assign({}, annotation));
