@@ -1,5 +1,44 @@
 ## Regex Lint Github Action (regex-lint-gh-action)
 
+### Description
+
+An easy-to-configure GitHub action for static linting of your repo.
+
+Given a list of lint configurations and include/exclude file path globs, the action will create check run annotations on any failing patterns (warning or error configured).
+
+This action currently only supports the `pull_request` event.
+
+### Inputs
+
+#### `file` (required, default = `.github/regex-lint.yml`)
+
+A file path to the YAML configuration file
+
+### Outputs
+
+This action produces no outputs.
+
+### Configuration Example
+
+See `.github/regex-lint.yml` for an example configuration.
+
+#### `lint-patterns` (required)
+
+- `name` (required): A human-friendly name for this lint configuration
+- `pattern` (required): A Javascript regular expression pattern
+- `documentation` (optional): An additional description to put on the annotation
+- `severity` (optional, default = `error`): One of (`warning`, `error`) -- if set to `error`, a failing lint will cause the action's check to fail
+
+#### `include-paths` (optional, default = include all files)
+
+A list of file path globs. The list of linted pull request files (minus those removed in the PR) will be checked to be included in at least one of the specified globs.
+
+NOTE: A file that matches an include path and an exclude path will be excluded.
+
+#### `exclude-paths` (optional, default = exclude no files)
+
+A list of file path globs. The list of linted pull request files (minus those removed in the PR) will be checked to be not excluded in all of the specified globs.
+
 ### For Demonstration Purposes
 
 Hello!
