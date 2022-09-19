@@ -1,2 +1,7 @@
-- name: No Hellos
-  pattern: 'hello'
+include-paths:
+  - 'README.md'
+  - '**/*.ts'
+lint-patterns:
+  - name: No Hellos
+    pattern: 'hello'
+    documentation: "Use hi. It's faster."

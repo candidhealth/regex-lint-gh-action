@@ -3,6 +3,7 @@ import * as github from '@actions/github';
 import { Octokit } from '@octokit/rest';
 import { promises as fs } from 'fs';
 import * as yaml from 'js-yaml';
+import minimatch from 'minimatch';
 
 const { GITHUB_TOKEN } = process.env;
 interface Annotation {
@@ -18,7 +19,16 @@ interface Annotation {
 interface LintConfig {
   name: string;
   pattern: string;
+  documentation?: string;
 }
+
+interface Configuration {
+  includePaths?: string[];
+  excludePaths?: string[];
+  lintConfigs: LintConfig[];
+}
+
+type GenericObject = { [key: string]: any };
 
 async function loadConfig() {
   const file = core.getInput('file');
@@ -47,36 +57,62 @@ async function getTouchedFiles(): Promise<string[]> {
 
     core.info('Found the following files in the PR:');
     touchedFiles.forEach(core.info);
+    core.info('');
+
     return touchedFiles;
   }
 }
 
-function parseConfig(config: unknown): LintConfig[] {
+function parseConfig(config: unknown): Configuration {
+  const configuration = config as GenericObject;
   const lintConfigs: LintConfig[] = [];
-  for (const entry of config as any[]) {
-    lintConfigs.push({
-      name: entry.name,
-      pattern: entry.pattern
-    });
+  for (const entry of configuration['lint-patterns'] as any[]) {
     try {
       new RegExp(entry.pattern);
+
+      lintConfigs.push({
+        name: entry.name,
+        pattern: entry.pattern,
+        documentation: entry.documentation
+      });
     } catch (error) {
       core.error(`Failed to parse regex pattern: ${entry.pattern}`);
     }
   }
 
-  return lintConfigs;
+  core.info('Parsed the following configuration:');
+  core.info(JSON.stringify(lintConfigs));
+  return {
+    includePaths: configuration['include-paths'],
+    excludePaths: configuration['exclude-paths'],
+    lintConfigs: lintConfigs
+  };
 }
 
 async function runLint(
   file: string,
-  lintConfigs: ReadonlyArray<LintConfig>
+  configuration: Configuration
 ): Promise<Annotation[]> {
+  if (
+    configuration.includePaths != null &&
+    !configuration.includePaths.some(pathGlob => minimatch(file, pathGlob))
+  ) {
+    core.info(`File did not match configured include path: ${file}`);
+  }
+
+  if (
+    configuration.excludePaths != null &&
+    configuration.excludePaths.some(pathGlob => minimatch(file, pathGlob))
+  ) {
+    core.info(`File matched configured exclude path: ${file}`);
+  }
+
+  core.info(`Running lint on ${file}...`);
   const annotations: Annotation[] = [];
   const fileContents: string = await fs.readFile(file, 'utf8');
   const fileLines = fileContents.split('\n');
   for (const [lineNumber, line] of fileLines.entries()) {
-    for (const lintConfig of lintConfigs) {
+    for (const lintConfig of configuration.lintConfigs) {
       const matchArrayIterator = line.matchAll(
         new RegExp(lintConfig.pattern, 'g')
       );
@@ -89,13 +125,17 @@ async function runLint(
           const matchValue = matchArray[0];
           const startColumn = matchArray.index;
           const endColumn = matchArray.index + matchValue.length;
-          const message = `Found match for ${lintConfig.name}: ${matchValue}`;
+          const message = `Found match for ${lintConfig.name}: ${matchValue}${
+            lintConfig.documentation != null
+              ? `\n${lintConfig.documentation}`
+              : ''
+          }`;
           core.info(
             `${file}: ${lineNumber},${startColumn},${endColumn}: ${message}`
           );
 
           annotations.push({
-            title: `Regex Lint Annotation: ${lintConfig.name}`,
+            title: `Regex Lint: ${lintConfig.name}`,
             file: file,
             startLine: lineNumber + 1,
             endLine: lineNumber + 1,
@@ -120,17 +160,17 @@ async function run(): Promise<void> {
       return;
     }
 
-    const config = await loadConfig();
-    if (config == null) {
+    const loadedConfig = await loadConfig();
+    if (loadedConfig == null) {
       core.setFailed('Error in reading the input yaml file');
       return;
     }
 
     const touchedFiles = await getTouchedFiles();
-    const lintConfigs = parseConfig(config);
+    const configuration = parseConfig(loadedConfig);
 
     const annotationsArr = await Promise.all(
-      touchedFiles.map(touchedFile => runLint(touchedFile, lintConfigs))
+      touchedFiles.map(touchedFile => runLint(touchedFile, configuration))
     );
 
     annotationsArr.forEach(annotations => {
