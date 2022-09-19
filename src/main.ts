@@ -1,6 +1,10 @@
 import * as core from '@actions/core';
+import * as github from '@actions/github';
+import { Octokit } from '@octokit/rest';
 import { promises as fs } from 'fs';
 import * as yaml from 'js-yaml';
+
+const { GITHUB_TOKEN } = process.env;
 interface Annotation {
   title: string;
   file: string;
@@ -21,6 +25,26 @@ async function loadConfig() {
   const content = await fs.readFile(file, 'utf8');
 
   return yaml.load(content);
+}
+
+async function getTouchedFiles(): Promise<string[]> {
+  const prNumber = github.context.payload.pull_request?.number;
+  if (prNumber == null) {
+    core.error('Failed to determine PR number by Github context.');
+    return [];
+  } else {
+    const octokit = new Octokit({ auth: GITHUB_TOKEN });
+    const prFiles = await octokit.pulls.listFiles({
+      owner: github.context.repo.owner,
+      repo: github.context.repo.repo,
+      pull_number: prNumber,
+      per_page: 100
+    });
+
+    return prFiles.data
+      .filter(d => d.status !== 'removed')
+      .map(d => d.filename);
+  }
 }
 
 function parseConfig(config: unknown): LintConfig[] {
@@ -69,8 +93,8 @@ async function runLint(
           annotations.push({
             title: `Regex Lint Annotation: ${lintConfig.name}`,
             file: file,
-            startLine: lineNumber,
-            endLine: lineNumber,
+            startLine: lineNumber + 1,
+            endLine: lineNumber + 1,
             startColumn: startColumn,
             endColumn: endColumn,
             message: message
@@ -85,13 +109,20 @@ async function runLint(
 
 async function run(): Promise<void> {
   try {
+    if (github.context.eventName !== 'pull_request') {
+      core.warning(
+        'Only pull request events are supported by this action right now.'
+      );
+      return;
+    }
+
     const config = await loadConfig();
     if (config == null) {
       core.setFailed('Error in reading the input yaml file');
       return;
     }
 
-    const touchedFiles = await Promise.resolve(['README.md']);
+    const touchedFiles = await getTouchedFiles();
     const lintConfigs = parseConfig(config);
 
     const annotationsArr = await Promise.all(
