@@ -1,0 +1,11 @@
+include-paths:
+  - 'README.md'
+  - '**/*.ts'
+lint-patterns:
+  - name: No Hellos
+    pattern: '(h|H)ello'
+    documentation: "Use hi. It's faster."
+    severity: warning
+  - name: Ban Minimatch
+    pattern: 'import minimatch'
+    severity: error

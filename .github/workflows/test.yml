@@ -9,6 +9,7 @@ on: # rebuild any PRs and main branch changes
 jobs:
   build: # make sure build/ci work properly
     runs-on: ubuntu-latest
+    name: build
     steps:
       - uses: actions/checkout@v2
       - run: |
@@ -17,10 +18,13 @@ jobs:
           npm run all
   test: # make sure the action works on a clean machine without building
     runs-on: ubuntu-latest
+    name: test
     steps:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Action Run
         uses: ./
         with:
-          milliseconds: 1000
+          file: .github/regex-lint.yml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
