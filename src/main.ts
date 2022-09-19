@@ -6,6 +6,8 @@ import * as yaml from 'js-yaml';
 import minimatch from 'minimatch';
 
 const { GITHUB_TOKEN } = process.env;
+
+type Severity = 'warning' | 'error';
 interface Annotation {
   title: string;
   file: string;
@@ -14,12 +16,14 @@ interface Annotation {
   startColumn: number;
   endColumn: number;
   message: string;
+  severity: Severity;
 }
 
 interface LintConfig {
   name: string;
   pattern: string;
   documentation?: string;
+  severity?: Severity;
 }
 
 interface Configuration {
@@ -73,7 +77,8 @@ function parseConfig(config: unknown): Configuration {
       lintConfigs.push({
         name: entry.name,
         pattern: entry.pattern,
-        documentation: entry.documentation
+        documentation: entry.documentation,
+        severity: entry.severity
       });
     } catch (error) {
       core.error(`Failed to parse regex pattern: ${entry.pattern}`);
@@ -128,11 +133,10 @@ async function runLint(
           const matchValue = matchArray[0];
           const startColumn = matchArray.index;
           const endColumn = matchArray.index + matchValue.length;
-          const messagePrefix = `Found match for ${lintConfig.name}:`;
-          const fencedValue = `\`\`\`${matchValue}\`\`\``;
+          const messagePrefix = `Found the following match for ${lintConfig.name}:`;
           const message = [
             messagePrefix,
-            fencedValue,
+            matchValue,
             lintConfig.documentation
           ].join('\n');
           core.info(
@@ -146,7 +150,8 @@ async function runLint(
             endLine: lineNumber + 1,
             startColumn: startColumn,
             endColumn: endColumn,
-            message: message
+            message: message,
+            severity: lintConfig.severity ?? 'error'
           });
         }
       }
@@ -181,7 +186,11 @@ async function run(): Promise<void> {
     core.info('');
     annotationsArr.forEach(annotations => {
       annotations.forEach(annotation => {
-        core.warning(annotation.message, { ...annotation });
+        if (annotation.severity === 'warning') {
+          core.warning(annotation.message, { ...annotation });
+        } else {
+          core.error(annotation.message, { ...annotation });
+        }
       });
     });
   } catch (error) {

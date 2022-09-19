@@ -87,7 +87,8 @@ function parseConfig(config) {
             lintConfigs.push({
                 name: entry.name,
                 pattern: entry.pattern,
-                documentation: entry.documentation
+                documentation: entry.documentation,
+                severity: entry.severity
             });
         }
         catch (error) {
@@ -104,6 +105,7 @@ function parseConfig(config) {
     };
 }
 function runLint(file, configuration) {
+    var _a;
     return __awaiter(this, void 0, void 0, function* () {
         if (configuration.includePaths != null &&
             !configuration.includePaths.some(pathGlob => (0, minimatch_1.default)(file, pathGlob))) {
@@ -129,11 +131,10 @@ function runLint(file, configuration) {
                         const matchValue = matchArray[0];
                         const startColumn = matchArray.index;
                         const endColumn = matchArray.index + matchValue.length;
-                        const messagePrefix = `Found match for ${lintConfig.name}:`;
-                        const fencedValue = `\`\`\`${matchValue}\`\`\``;
+                        const messagePrefix = `Found the following match for ${lintConfig.name}:`;
                         const message = [
                             messagePrefix,
-                            fencedValue,
+                            matchValue,
                             lintConfig.documentation
                         ].join('\n');
                         core.info(`${file}: ${lineNumber},${startColumn},${endColumn}: ${message}`);
@@ -144,7 +145,8 @@ function runLint(file, configuration) {
                             endLine: lineNumber + 1,
                             startColumn: startColumn,
                             endColumn: endColumn,
-                            message: message
+                            message: message,
+                            severity: (_a = lintConfig.severity) !== null && _a !== void 0 ? _a : 'error'
                         });
                     }
                 }
@@ -171,7 +173,12 @@ function run() {
             core.info('');
             annotationsArr.forEach(annotations => {
                 annotations.forEach(annotation => {
-                    core.warning(annotation.message, Object.assign({}, annotation));
+                    if (annotation.severity === 'warning') {
+                        core.warning(annotation.message, Object.assign({}, annotation));
+                    }
+                    else {
+                        core.error(annotation.message, Object.assign({}, annotation));
+                    }
                 });
             });
         }
