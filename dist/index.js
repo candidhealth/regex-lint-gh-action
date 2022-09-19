@@ -48,14 +48,45 @@ function loadConfig() {
 function parseConfig(config) {
     const lintConfigs = [];
     for (const entry of config) {
-        core.info(JSON.stringify(entry));
-        core.info(typeof entry);
         lintConfigs.push({
             name: entry.name,
             pattern: entry.pattern
         });
     }
     return lintConfigs;
+}
+function runLint(file, lintConfigs) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const annotations = [];
+        const fileContents = yield fs_1.promises.readFile(file, 'utf8');
+        const fileLines = fileContents.split('\n');
+        for (const [lineNumber, line] of fileLines.entries()) {
+            for (const lintConfig of lintConfigs) {
+                const matchArrayIterator = line.matchAll(new RegExp(lintConfig.pattern, 'g'));
+                for (const matchArray of matchArrayIterator) {
+                    if (matchArray != null &&
+                        matchArray.length > 0 &&
+                        matchArray.index != null) {
+                        const matchValue = matchArray[0];
+                        const startColumn = matchArray.index;
+                        const endColumn = matchArray.index + matchValue.length;
+                        const message = `Found match for ${lintConfig.name}: ${matchValue}`;
+                        core.info(`${file}: ${lineNumber},${startColumn},${endColumn}: ${message}`);
+                        annotations.push({
+                            title: `Regex Lint Annotation: ${lintConfig.name}`,
+                            file: file,
+                            startLine: lineNumber,
+                            endLine: lineNumber,
+                            startColumn: startColumn,
+                            endColumn: endColumn,
+                            message: message
+                        });
+                    }
+                }
+            }
+        }
+        return annotations;
+    });
 }
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
@@ -65,12 +96,18 @@ function run() {
                 core.setFailed('Error in reading the input yaml file');
                 return;
             }
+            const touchedFiles = yield Promise.resolve(['README.md']);
             const lintConfigs = parseConfig(config);
-            core.info(JSON.stringify(lintConfigs));
+            const annotationsArr = yield Promise.all(touchedFiles.map(touchedFile => runLint(touchedFile, lintConfigs)));
+            annotationsArr.forEach(annotations => {
+                annotations.forEach(annotation => {
+                    core.warning(annotation.message, Object.assign({}, annotation));
+                });
+            });
         }
         catch (error) {
             if (error instanceof Error) {
-                core.warning("There was an error in run");
+                core.warning('There was an error in run');
                 core.setFailed(error.message);
             }
         }
