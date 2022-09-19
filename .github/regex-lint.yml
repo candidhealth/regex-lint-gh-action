@@ -3,5 +3,5 @@ include-paths:
   - '**/*.ts'
 lint-patterns:
   - name: No Hellos
-    pattern: 'hello'
+    pattern: '(h|H)ello'
     documentation: "Use hi. It's faster."
