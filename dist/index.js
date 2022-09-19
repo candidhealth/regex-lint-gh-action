@@ -64,9 +64,12 @@ function getTouchedFiles() {
                 pull_number: prNumber,
                 per_page: 100
             });
-            return prFiles.data
+            const touchedFiles = prFiles.data
                 .filter(d => d.status !== 'removed')
                 .map(d => d.filename);
+            core.info('Found the following files in the PR:');
+            touchedFiles.forEach(core.info);
+            return touchedFiles;
         }
     });
 }
