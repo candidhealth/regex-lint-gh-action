@@ -171,16 +171,18 @@ function run() {
             const configuration = parseConfig(loadedConfig);
             const annotationsArr = yield Promise.all(touchedFiles.map(touchedFile => runLint(touchedFile, configuration)));
             core.info('');
-            annotationsArr.forEach(annotations => {
-                annotations.forEach(annotation => {
-                    if (annotation.severity === 'warning') {
-                        core.warning(annotation.message, Object.assign({}, annotation));
-                    }
-                    else {
-                        core.error(annotation.message, Object.assign({}, annotation));
-                    }
-                });
+            const annotations = annotationsArr.flatMap(a => a);
+            annotations.forEach(annotation => {
+                if (annotation.severity === 'warning') {
+                    core.warning(annotation.message, Object.assign({}, annotation));
+                }
+                else {
+                    core.error(annotation.message, Object.assign({}, annotation));
+                }
             });
+            if (annotations.some(annotation => annotation.severity === 'error')) {
+                core.setFailed('A lint failed with error-level severity.');
+            }
         }
         catch (error) {
             if (error instanceof Error) {

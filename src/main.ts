@@ -184,15 +184,18 @@ async function run(): Promise<void> {
     );
 
     core.info('');
-    annotationsArr.forEach(annotations => {
-      annotations.forEach(annotation => {
-        if (annotation.severity === 'warning') {
-          core.warning(annotation.message, { ...annotation });
-        } else {
-          core.error(annotation.message, { ...annotation });
-        }
-      });
+    const annotations = annotationsArr.flatMap(a => a);
+    annotations.forEach(annotation => {
+      if (annotation.severity === 'warning') {
+        core.warning(annotation.message, { ...annotation });
+      } else {
+        core.error(annotation.message, { ...annotation });
+      }
     });
+
+    if (annotations.some(annotation => annotation.severity === 'error')) {
+      core.setFailed('A lint failed with error-level severity.');
+    }
   } catch (error) {
     if (error instanceof Error) {
       core.warning('There was an error in run');
