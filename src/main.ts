@@ -194,7 +194,9 @@ async function runLint(
         const message = [
           messagePrefix,
           matchValue,
-          `Description: ${lintConfig.documentation}`
+          ...(lintConfig.documentation != null
+            ? [`Description: ${lintConfig.documentation}`]
+            : [])
         ].join('\n');
         core.info(
           `${file}: ${startLine},${startColumn};${endLine},${endColumn}: ${message}`
