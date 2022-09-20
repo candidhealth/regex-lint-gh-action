@@ -78,7 +78,7 @@ function parseConfig(config: unknown): Configuration {
 
       lintConfigs.push({
         name: entry.name,
-        pattern: entry.pattern,
+        pattern: JSON.parse(`"${entry.pattern}"`),
         documentation: entry.documentation,
         severity: entry.severity,
         overriddenIncludePaths: entry['overridden-include-paths'],
@@ -113,6 +113,23 @@ function filePassesPathsPattern(
   return includeOrExclude === 'include' ? pathsCoverFile : !pathsCoverFile;
 }
 
+function determineLineNumber(fileContents: string, index: number): number {
+  return fileContents.substring(0, index).split(/\r\n|\r|\n/).length;
+}
+
+function determineColNumber(fileContents: string, index: number): number {
+  const splitLines = fileContents.substring(0, index).split(/\r\n|\r|\n/);
+  if (splitLines.length === 1) {
+    return index;
+  }
+
+  const charactersBeforeLine = splitLines
+    .filter((_line, idx) => idx < splitLines.length - 1)
+    .map(line => line.length)
+    .reduce((first, second) => first + second);
+  return index - (charactersBeforeLine + splitLines.length - 1);
+}
+
 async function runLint(
   file: string,
   configuration: Configuration
@@ -133,65 +150,68 @@ async function runLint(
   core.info(`Running lint on ${file}...`);
   const annotations: Annotation[] = [];
   const fileContents: string = await fs.readFile(file, 'utf8');
-  const fileLines = fileContents.split('\n');
-  for (const [lineNumber, line] of fileLines.entries()) {
-    for (const lintConfig of configuration.lintConfigs) {
+  for (const lintConfig of configuration.lintConfigs) {
+    if (
+      !filePassesPathsPattern(
+        file,
+        lintConfig.overriddenIncludePaths,
+        'include'
+      ) ||
+      !filePassesPathsPattern(
+        file,
+        lintConfig.overriddenExcludePaths,
+        'exclude'
+      )
+    ) {
+      continue;
+    }
+
+    if (
+      lintConfig.overriddenIncludePaths == null &&
+      lintConfig.overriddenExcludePaths == null &&
+      !passesGlobalPaths
+    ) {
+      continue;
+    }
+
+    const matchArrayIterator = fileContents.matchAll(
+      new RegExp(lintConfig.pattern, 'gm') // multi-line mode enabled
+    );
+    for (const matchArray of matchArrayIterator) {
       if (
-        !filePassesPathsPattern(
-          file,
-          lintConfig.overriddenIncludePaths,
-          'include'
-        ) ||
-        !filePassesPathsPattern(
-          file,
-          lintConfig.overriddenExcludePaths,
-          'exclude'
-        )
+        matchArray != null &&
+        matchArray.length > 0 &&
+        matchArray.index != null
       ) {
-        continue;
-      }
+        const matchValue = matchArray[0];
+        const endIndex = matchArray.index + matchValue.length;
 
-      if (
-        lintConfig.overriddenIncludePaths == null &&
-        lintConfig.overriddenExcludePaths == null &&
-        !passesGlobalPaths
-      ) {
-        continue;
-      }
+        const startLine = determineLineNumber(fileContents, matchArray.index);
+        const endLine = determineLineNumber(fileContents, endIndex);
+        const startColumn = determineColNumber(fileContents, matchArray.index);
+        const endColumn = determineColNumber(fileContents, endIndex);
+        const messagePrefix = `Found the following match for ${lintConfig.name}:`;
+        const message = [
+          messagePrefix,
+          matchValue,
+          ...(lintConfig.documentation != null
+            ? [`Description: ${lintConfig.documentation}`]
+            : [])
+        ].join('\n');
+        core.info(
+          `${file}: ${startLine},${startColumn};${endLine},${endColumn}: ${message}`
+        );
 
-      const matchArrayIterator = line.matchAll(
-        new RegExp(lintConfig.pattern, 'g')
-      );
-      for (const matchArray of matchArrayIterator) {
-        if (
-          matchArray != null &&
-          matchArray.length > 0 &&
-          matchArray.index != null
-        ) {
-          const matchValue = matchArray[0];
-          const startColumn = matchArray.index;
-          const endColumn = matchArray.index + matchValue.length;
-          const messagePrefix = `Found the following match for ${lintConfig.name}:`;
-          const message = [
-            messagePrefix,
-            matchValue,
-            lintConfig.documentation
-          ].join('\n');
-          core.info(
-            `${file}: ${lineNumber},${startColumn},${endColumn}: ${message}`
-          );
-
-          annotations.push({
-            title: `Regex Lint: ${lintConfig.name}`,
-            file: file,
-            startLine: lineNumber + 1,
-            endLine: lineNumber + 1,
-            startColumn: startColumn,
-            endColumn: endColumn,
-            message: message,
-            severity: lintConfig.severity ?? 'error'
-          });
-        }
+        annotations.push({
+          title: `Regex Lint: ${lintConfig.name}`,
+          file: file,
+          startLine: startLine,
+          endLine: endLine,
+          startColumn: startColumn,
+          endColumn: endColumn,
+          message: message,
+          severity: lintConfig.severity ?? 'error'
+        });
       }
     }
   }

@@ -86,7 +86,7 @@ function parseConfig(config) {
             new RegExp(entry.pattern);
             lintConfigs.push({
                 name: entry.name,
-                pattern: entry.pattern,
+                pattern: JSON.parse(`"${entry.pattern}"`),
                 documentation: entry.documentation,
                 severity: entry.severity,
                 overriddenIncludePaths: entry['overridden-include-paths'],
@@ -113,6 +113,20 @@ function filePassesPathsPattern(file, paths, includeOrExclude) {
     const pathsCoverFile = paths.some(pathGlob => (0, minimatch_1.default)(file, pathGlob));
     return includeOrExclude === 'include' ? pathsCoverFile : !pathsCoverFile;
 }
+function determineLineNumber(fileContents, index) {
+    return fileContents.substring(0, index).split(/\r\n|\r|\n/).length;
+}
+function determineColNumber(fileContents, index) {
+    const splitLines = fileContents.substring(0, index).split(/\r\n|\r|\n/);
+    if (splitLines.length === 1) {
+        return index;
+    }
+    const charactersBeforeLine = splitLines
+        .filter((_line, idx) => idx < splitLines.length - 1)
+        .map(line => line.length)
+        .reduce((first, second) => first + second);
+    return index - (charactersBeforeLine + splitLines.length - 1);
+}
 function runLint(file, configuration) {
     var _a;
     return __awaiter(this, void 0, void 0, function* () {
@@ -125,44 +139,47 @@ function runLint(file, configuration) {
         core.info(`Running lint on ${file}...`);
         const annotations = [];
         const fileContents = yield fs_1.promises.readFile(file, 'utf8');
-        const fileLines = fileContents.split('\n');
-        for (const [lineNumber, line] of fileLines.entries()) {
-            for (const lintConfig of configuration.lintConfigs) {
-                if (!filePassesPathsPattern(file, lintConfig.overriddenIncludePaths, 'include') ||
-                    !filePassesPathsPattern(file, lintConfig.overriddenExcludePaths, 'exclude')) {
-                    continue;
-                }
-                if (lintConfig.overriddenIncludePaths == null &&
-                    lintConfig.overriddenExcludePaths == null &&
-                    !passesGlobalPaths) {
-                    continue;
-                }
-                const matchArrayIterator = line.matchAll(new RegExp(lintConfig.pattern, 'g'));
-                for (const matchArray of matchArrayIterator) {
-                    if (matchArray != null &&
-                        matchArray.length > 0 &&
-                        matchArray.index != null) {
-                        const matchValue = matchArray[0];
-                        const startColumn = matchArray.index;
-                        const endColumn = matchArray.index + matchValue.length;
-                        const messagePrefix = `Found the following match for ${lintConfig.name}:`;
-                        const message = [
-                            messagePrefix,
-                            matchValue,
-                            lintConfig.documentation
-                        ].join('\n');
-                        core.info(`${file}: ${lineNumber},${startColumn},${endColumn}: ${message}`);
-                        annotations.push({
-                            title: `Regex Lint: ${lintConfig.name}`,
-                            file: file,
-                            startLine: lineNumber + 1,
-                            endLine: lineNumber + 1,
-                            startColumn: startColumn,
-                            endColumn: endColumn,
-                            message: message,
-                            severity: (_a = lintConfig.severity) !== null && _a !== void 0 ? _a : 'error'
-                        });
-                    }
+        for (const lintConfig of configuration.lintConfigs) {
+            if (!filePassesPathsPattern(file, lintConfig.overriddenIncludePaths, 'include') ||
+                !filePassesPathsPattern(file, lintConfig.overriddenExcludePaths, 'exclude')) {
+                continue;
+            }
+            if (lintConfig.overriddenIncludePaths == null &&
+                lintConfig.overriddenExcludePaths == null &&
+                !passesGlobalPaths) {
+                continue;
+            }
+            const matchArrayIterator = fileContents.matchAll(new RegExp(lintConfig.pattern, 'gm') // multi-line mode enabled
+            );
+            for (const matchArray of matchArrayIterator) {
+                if (matchArray != null &&
+                    matchArray.length > 0 &&
+                    matchArray.index != null) {
+                    const matchValue = matchArray[0];
+                    const endIndex = matchArray.index + matchValue.length;
+                    const startLine = determineLineNumber(fileContents, matchArray.index);
+                    const endLine = determineLineNumber(fileContents, endIndex);
+                    const startColumn = determineColNumber(fileContents, matchArray.index);
+                    const endColumn = determineColNumber(fileContents, endIndex);
+                    const messagePrefix = `Found the following match for ${lintConfig.name}:`;
+                    const message = [
+                        messagePrefix,
+                        matchValue,
+                        ...(lintConfig.documentation != null
+                            ? [`Description: ${lintConfig.documentation}`]
+                            : [])
+                    ].join('\n');
+                    core.info(`${file}: ${startLine},${startColumn};${endLine},${endColumn}: ${message}`);
+                    annotations.push({
+                        title: `Regex Lint: ${lintConfig.name}`,
+                        file: file,
+                        startLine: startLine,
+                        endLine: endLine,
+                        startColumn: startColumn,
+                        endColumn: endColumn,
+                        message: message,
+                        severity: (_a = lintConfig.severity) !== null && _a !== void 0 ? _a : 'error'
+                    });
                 }
             }
         }

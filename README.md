@@ -47,4 +47,4 @@ A list of file path globs. The list of linted pull request files (minus those re
 
 Hello!
 
-This should cause an error as it contains the word hello which violates the test rule. See the last PR as an example of how the annotations appear.
+This should cause an error as it contains the word hello which violates one of the test rules. See the last PR as an example of how the annotations appear.
