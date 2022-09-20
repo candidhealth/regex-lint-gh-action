@@ -150,7 +150,6 @@ async function runLint(
   core.info(`Running lint on ${file}...`);
   const annotations: Annotation[] = [];
   const fileContents: string = await fs.readFile(file, 'utf8');
-  core.info(JSON.stringify(fileContents));
   for (const lintConfig of configuration.lintConfigs) {
     if (
       !filePassesPathsPattern(
@@ -176,7 +175,7 @@ async function runLint(
     }
 
     const matchArrayIterator = fileContents.matchAll(
-      new RegExp(lintConfig.pattern, 'g')
+      new RegExp(lintConfig.pattern.replace('\\\\', '\\'), 'g')
     );
     for (const matchArray of matchArrayIterator) {
       if (
