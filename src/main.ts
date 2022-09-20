@@ -114,11 +114,15 @@ function filePassesPathsPattern(
 }
 
 function determineLineNumber(fileContents: string, index: number): number {
-  return fileContents.substring(0, index).split(/\r\n|\r|\n/).length + 1;
+  return fileContents.substring(0, index).split(/\r\n|\r|\n/).length;
 }
 
 function determineColNumber(fileContents: string, index: number): number {
   const splitLines = fileContents.substring(0, index).split(/\r\n|\r|\n/);
+  if (splitLines.length === 1) {
+    return index;
+  }
+
   const charactersBeforeLine = splitLines
     .filter((_line, idx) => idx < splitLines.length - 1)
     .map(line => line.length)

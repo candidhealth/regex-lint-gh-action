@@ -114,10 +114,13 @@ function filePassesPathsPattern(file, paths, includeOrExclude) {
     return includeOrExclude === 'include' ? pathsCoverFile : !pathsCoverFile;
 }
 function determineLineNumber(fileContents, index) {
-    return fileContents.substring(0, index).split(/\r\n|\r|\n/).length + 1;
+    return fileContents.substring(0, index).split(/\r\n|\r|\n/).length;
 }
 function determineColNumber(fileContents, index) {
     const splitLines = fileContents.substring(0, index).split(/\r\n|\r|\n/);
+    if (splitLines.length === 1) {
+        return index;
+    }
     const charactersBeforeLine = splitLines
         .filter((_line, idx) => idx < splitLines.length - 1)
         .map(line => line.length)
