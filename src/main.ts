@@ -150,6 +150,9 @@ async function runLint(
   core.info(`Running lint on ${file}...`);
   const annotations: Annotation[] = [];
   const fileContents: string = await fs.readFile(file, 'utf8');
+  if (file === "README.md") {
+    core.info(fileContents);
+  }
   for (const lintConfig of configuration.lintConfigs) {
     if (
       !filePassesPathsPattern(
