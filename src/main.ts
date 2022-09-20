@@ -24,11 +24,13 @@ interface LintConfig {
   pattern: string;
   documentation?: string;
   severity?: Severity;
+  overriddenIncludePaths?: string[];
+  overriddenExcludePaths?: string[];
 }
 
 interface Configuration {
-  includePaths?: string[];
-  excludePaths?: string[];
+  globalIncludePaths?: string[];
+  globalExcludePaths?: string[];
   lintConfigs: LintConfig[];
 }
 
@@ -89,30 +91,41 @@ function parseConfig(config: unknown): Configuration {
   core.info(JSON.stringify(lintConfigs));
   core.info('');
   return {
-    includePaths: configuration['include-paths'],
-    excludePaths: configuration['exclude-paths'],
+    globalIncludePaths: configuration['global-include-paths'],
+    globalExcludePaths: configuration['global-exclude-paths'],
     lintConfigs: lintConfigs
   };
+}
+
+function filePassesPathsPattern(
+  file: string,
+  paths: string[] | undefined,
+  includeOrExclude: 'include' | 'exclude'
+): boolean {
+  if (paths == null) {
+    return true;
+  }
+
+  const pathsCoverFile = paths.some(pathGlob => minimatch(file, pathGlob));
+
+  return includeOrExclude === 'include' ? pathsCoverFile : !pathsCoverFile;
 }
 
 async function runLint(
   file: string,
   configuration: Configuration
 ): Promise<Annotation[]> {
-  if (
-    configuration.includePaths != null &&
-    !configuration.includePaths.some(pathGlob => minimatch(file, pathGlob))
-  ) {
-    core.info(`File did not match configured include path: ${file}`);
-    return [];
-  }
+  const passesGlobalPaths =
+    filePassesPathsPattern(file, configuration.globalIncludePaths, 'include') &&
+    filePassesPathsPattern(file, configuration.globalExcludePaths, 'exclude');
 
-  if (
-    configuration.excludePaths != null &&
-    configuration.excludePaths.some(pathGlob => minimatch(file, pathGlob))
-  ) {
-    core.info(`File matched configured exclude path: ${file}`);
-    return [];
+  if (!passesGlobalPaths) {
+    core.info(
+      `File did not match globally configured include-exclude paths: ${file}`
+    );
+    core.info(
+      'Lint configurations will be checked for overriden include-exclude paths.'
+    );
   }
 
   core.info(`Running lint on ${file}...`);
@@ -121,6 +134,29 @@ async function runLint(
   const fileLines = fileContents.split('\n');
   for (const [lineNumber, line] of fileLines.entries()) {
     for (const lintConfig of configuration.lintConfigs) {
+      if (
+        !filePassesPathsPattern(
+          file,
+          lintConfig.overriddenIncludePaths,
+          'include'
+        ) ||
+        !filePassesPathsPattern(
+          file,
+          lintConfig.overriddenExcludePaths,
+          'exclude'
+        )
+      ) {
+        continue;
+      }
+
+      if (
+        lintConfig.overriddenIncludePaths == null &&
+        lintConfig.overriddenExcludePaths == null &&
+        !passesGlobalPaths
+      ) {
+        continue;
+      }
+
       const matchArrayIterator = line.matchAll(
         new RegExp(lintConfig.pattern, 'g')
       );

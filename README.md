@@ -28,14 +28,18 @@ See `.github/regex-lint.yml` for an example configuration.
 - `pattern` (required): A Javascript regular expression pattern
 - `documentation` (optional): An additional description to put on the annotation
 - `severity` (optional, default = `error`): One of (`warning`, `error`) -- if set to `error`, a failing lint will cause the action's check to fail
+- `overridden-include-paths` (optional, default = no overrides): Override the `global-include-paths` for this specific lint pattern
+- `overridden-exclude-paths` (optional, default = no overrides): Override the `global-exclude-paths` for this specific lint pattern
 
-#### `include-paths` (optional, default = include all files)
+NOTE: A file that matches an include path and an exclude path will be excluded. This also applies to overridden paths.
+
+#### `global-include-paths` (optional, default = include all files)
 
 A list of file path globs. The list of linted pull request files (minus those removed in the PR) will be checked to be included in at least one of the specified globs.
 
 NOTE: A file that matches an include path and an exclude path will be excluded.
 
-#### `exclude-paths` (optional, default = exclude no files)
+#### `global-exclude-paths` (optional, default = exclude no files)
 
 A list of file path globs. The list of linted pull request files (minus those removed in the PR) will be checked to be not excluded in all of the specified globs.
 
