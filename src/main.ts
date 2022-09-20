@@ -69,9 +69,13 @@ async function getTouchedFiles(): Promise<string[]> {
   }
 }
 
-function parseConfig(config: unknown): Configuration {
+function parseConfig(config: unknown): {
+  configuration: Configuration;
+  encounteredError: boolean;
+} {
   const configuration = config as GenericObject;
   const lintConfigs: LintConfig[] = [];
+  let encounteredError = false;
   for (const entry of configuration['lint-patterns'] as GenericObject[]) {
     try {
       new RegExp(entry.pattern);
@@ -86,6 +90,7 @@ function parseConfig(config: unknown): Configuration {
       });
     } catch (error) {
       core.error(`Failed to parse regex pattern: ${entry.pattern}`);
+      encounteredError = true;
     }
   }
 
@@ -93,9 +98,12 @@ function parseConfig(config: unknown): Configuration {
   core.info(JSON.stringify(lintConfigs));
   core.info('');
   return {
-    globalIncludePaths: configuration['global-include-paths'],
-    globalExcludePaths: configuration['global-exclude-paths'],
-    lintConfigs: lintConfigs
+    configuration: {
+      globalIncludePaths: configuration['global-include-paths'],
+      globalExcludePaths: configuration['global-exclude-paths'],
+      lintConfigs: lintConfigs
+    },
+    encounteredError: encounteredError
   };
 }
 
@@ -235,7 +243,12 @@ async function run(): Promise<void> {
     }
 
     const touchedFiles = await getTouchedFiles();
-    const configuration = parseConfig(loadedConfig);
+    const { configuration, encounteredError } = parseConfig(loadedConfig);
+
+    if (encounteredError) {
+      core.setFailed('Encountered issue while parsing configuration.');
+      return;
+    }
 
     const annotationsArr = await Promise.all(
       touchedFiles.map(touchedFile => runLint(touchedFile, configuration))
