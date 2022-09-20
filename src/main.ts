@@ -197,7 +197,7 @@ async function runLint(
           lintConfig.documentation
         ].join('\n');
         core.info(
-          `${file}: ${startLine},${startColumn},${endColumn}: ${message}`
+          `${file}: ${startLine},${startColumn};${endLine},${endColumn}: ${message}`
         );
 
         annotations.push({

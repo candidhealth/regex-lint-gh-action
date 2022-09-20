@@ -139,9 +139,6 @@ function runLint(file, configuration) {
         core.info(`Running lint on ${file}...`);
         const annotations = [];
         const fileContents = yield fs_1.promises.readFile(file, 'utf8');
-        if (file === "README.md") {
-            core.info(fileContents);
-        }
         for (const lintConfig of configuration.lintConfigs) {
             if (!filePassesPathsPattern(file, lintConfig.overriddenIncludePaths, 'include') ||
                 !filePassesPathsPattern(file, lintConfig.overriddenExcludePaths, 'exclude')) {
@@ -170,7 +167,7 @@ function runLint(file, configuration) {
                         matchValue,
                         lintConfig.documentation
                     ].join('\n');
-                    core.info(`${file}: ${startLine},${startColumn},${endColumn}: ${message}`);
+                    core.info(`${file}: ${startLine},${startColumn};${endLine},${endColumn}: ${message}`);
                     annotations.push({
                         title: `Regex Lint: ${lintConfig.name}`,
                         file: file,
