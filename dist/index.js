@@ -86,7 +86,7 @@ function parseConfig(config) {
             new RegExp(entry.pattern);
             lintConfigs.push({
                 name: entry.name,
-                pattern: entry.pattern,
+                pattern: unescapeRegExp(entry.pattern),
                 documentation: entry.documentation,
                 severity: entry.severity,
                 overriddenIncludePaths: entry['overridden-include-paths'],
@@ -112,6 +112,9 @@ function filePassesPathsPattern(file, paths, includeOrExclude) {
     }
     const pathsCoverFile = paths.some(pathGlob => (0, minimatch_1.default)(file, pathGlob));
     return includeOrExclude === 'include' ? pathsCoverFile : !pathsCoverFile;
+}
+function unescapeRegExp(str) {
+    return str.replace(/\\\\([.*+?^${}()|[\]\\])/g, '\\$1');
 }
 // Stolen from Mozilla docs
 function escapeRegExp(str) {
