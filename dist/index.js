@@ -113,10 +113,6 @@ function filePassesPathsPattern(file, paths, includeOrExclude) {
     const pathsCoverFile = paths.some(pathGlob => (0, minimatch_1.default)(file, pathGlob));
     return includeOrExclude === 'include' ? pathsCoverFile : !pathsCoverFile;
 }
-// Stolen from Mozilla docs
-function escapeRegExp(str) {
-    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
-}
 function determineLineNumber(fileContents, index) {
     return fileContents.substring(0, index).split(/\r\n|\r|\n/).length;
 }
@@ -153,7 +149,7 @@ function runLint(file, configuration) {
                 !passesGlobalPaths) {
                 continue;
             }
-            const matchArrayIterator = fileContents.matchAll(new RegExp(escapeRegExp(lintConfig.pattern), 'gm') // multi-line mode enabled
+            const matchArrayIterator = fileContents.matchAll(new RegExp(lintConfig.pattern, 'gm') // multi-line mode enabled
             );
             for (const matchArray of matchArrayIterator) {
                 if (matchArray != null &&
