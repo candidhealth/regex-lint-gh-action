@@ -114,7 +114,7 @@ function filePassesPathsPattern(file, paths, includeOrExclude) {
     return includeOrExclude === 'include' ? pathsCoverFile : !pathsCoverFile;
 }
 function unescapeRegExp(str) {
-    return str.replace(/\\\\([.*+?^${}()|[\]\\])/g, '\\$1');
+    return str.replace(/\\\\/g, '\\');
 }
 // Stolen from Mozilla docs
 function escapeRegExp(str) {

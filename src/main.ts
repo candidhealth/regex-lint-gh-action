@@ -114,7 +114,7 @@ function filePassesPathsPattern(
 }
 
 function unescapeRegExp(str: string): string {
-  return str.replace(/\\\\([.*+?^${}()|[\]\\])/g, '\\$1');
+  return str.replace(/\\\\/g, '\\');
 }
 
 // Stolen from Mozilla docs
