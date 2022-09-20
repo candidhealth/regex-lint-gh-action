@@ -1,11 +1,15 @@
-include-paths:
+global-include-paths:
   - 'README.md'
   - '**/*.ts'
 lint-patterns:
   - name: No Hellos
     pattern: '(h|H)ello'
     documentation: "Use hi. It's faster."
+    overridden-exclude-paths:
+      - 'README.md'
     severity: warning
   - name: Ban Minimatch
     pattern: 'import minimatch'
     severity: error
+    overridden-include-paths:
+      - '**/*.ts'
