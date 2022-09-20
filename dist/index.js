@@ -139,6 +139,7 @@ function runLint(file, configuration) {
         core.info(`Running lint on ${file}...`);
         const annotations = [];
         const fileContents = yield fs_1.promises.readFile(file, 'utf8');
+        core.info(JSON.stringify(fileContents));
         for (const lintConfig of configuration.lintConfigs) {
             if (!filePassesPathsPattern(file, lintConfig.overriddenIncludePaths, 'include') ||
                 !filePassesPathsPattern(file, lintConfig.overriddenExcludePaths, 'exclude')) {

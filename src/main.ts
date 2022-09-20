@@ -150,6 +150,7 @@ async function runLint(
   core.info(`Running lint on ${file}...`);
   const annotations: Annotation[] = [];
   const fileContents: string = await fs.readFile(file, 'utf8');
+  core.info(JSON.stringify(fileContents));
   for (const lintConfig of configuration.lintConfigs) {
     if (
       !filePassesPathsPattern(
