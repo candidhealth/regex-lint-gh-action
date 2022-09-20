@@ -88,7 +88,9 @@ function parseConfig(config) {
                 name: entry.name,
                 pattern: entry.pattern,
                 documentation: entry.documentation,
-                severity: entry.severity
+                severity: entry.severity,
+                overriddenIncludePaths: entry['overridden-include-paths'],
+                overriddenExcludePaths: entry['overridden-exclude-paths']
             });
         }
         catch (error) {

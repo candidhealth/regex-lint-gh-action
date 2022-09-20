@@ -72,7 +72,7 @@ async function getTouchedFiles(): Promise<string[]> {
 function parseConfig(config: unknown): Configuration {
   const configuration = config as GenericObject;
   const lintConfigs: LintConfig[] = [];
-  for (const entry of configuration['lint-patterns'] as any[]) {
+  for (const entry of configuration['lint-patterns'] as GenericObject[]) {
     try {
       new RegExp(entry.pattern);
 
@@ -80,7 +80,9 @@ function parseConfig(config: unknown): Configuration {
         name: entry.name,
         pattern: entry.pattern,
         documentation: entry.documentation,
-        severity: entry.severity
+        severity: entry.severity,
+        overriddenIncludePaths: entry['overridden-include-paths'],
+        overriddenExcludePaths: entry['overridden-exclude-paths']
       });
     } catch (error) {
       core.error(`Failed to parse regex pattern: ${entry.pattern}`);
