@@ -171,7 +171,6 @@ function runLint(file, configuration) {
                         lintConfig.documentation.length > 0;
                     const message = [
                         messagePrefix,
-                        '\n',
                         matchValue,
                         ...(hasDocumentation
                             ? [`\nDescription:\n${lintConfig.documentation}`]
