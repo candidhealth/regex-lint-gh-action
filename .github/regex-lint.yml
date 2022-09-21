@@ -3,12 +3,16 @@ global-include-paths:
   - '**/*.ts'
 lint-patterns:
   - name: No Hellos
-    pattern: 'Hello!\n\nThis'
+    pattern: "Hello!\n\nThis"
     documentation: "Use hi for your intro. It's faster."
     severity: warning
   - name: Ban Minimatch
-    pattern: 'import minimatch'
+    pattern: "import minimatch"
     severity: error
     overridden-include-paths:
       - '**/*.ts'
     overridden-exclude-paths: []
+  - name: Ban rules (period).
+    pattern: "rules."
+    severity: error
+    documentation: "I don't like the period symbol."

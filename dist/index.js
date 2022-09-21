@@ -81,12 +81,13 @@ function getTouchedFiles() {
 function parseConfig(config) {
     const configuration = config;
     const lintConfigs = [];
+    let encounteredError = false;
     for (const entry of configuration['lint-patterns']) {
         try {
             new RegExp(entry.pattern);
             lintConfigs.push({
                 name: entry.name,
-                pattern: JSON.parse(`"${entry.pattern}"`),
+                pattern: entry.pattern,
                 documentation: entry.documentation,
                 severity: entry.severity,
                 overriddenIncludePaths: entry['overridden-include-paths'],
@@ -95,15 +96,19 @@ function parseConfig(config) {
         }
         catch (error) {
             core.error(`Failed to parse regex pattern: ${entry.pattern}`);
+            encounteredError = true;
         }
     }
     core.info('Parsed the following configuration:');
     core.info(JSON.stringify(lintConfigs));
     core.info('');
     return {
-        globalIncludePaths: configuration['global-include-paths'],
-        globalExcludePaths: configuration['global-exclude-paths'],
-        lintConfigs: lintConfigs
+        configuration: {
+            globalIncludePaths: configuration['global-include-paths'],
+            globalExcludePaths: configuration['global-exclude-paths'],
+            lintConfigs: lintConfigs
+        },
+        encounteredError: encounteredError
     };
 }
 function filePassesPathsPattern(file, paths, includeOrExclude) {
@@ -199,7 +204,11 @@ function run() {
                 return;
             }
             const touchedFiles = yield getTouchedFiles();
-            const configuration = parseConfig(loadedConfig);
+            const { configuration, encounteredError } = parseConfig(loadedConfig);
+            if (encounteredError) {
+                core.setFailed('Encountered issue while parsing configuration.');
+                return;
+            }
             const annotationsArr = yield Promise.all(touchedFiles.map(touchedFile => runLint(touchedFile, configuration)));
             core.info('');
             const annotations = annotationsArr.flatMap(a => a);
