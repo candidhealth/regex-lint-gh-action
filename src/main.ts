@@ -199,11 +199,14 @@ async function runLint(
         const startColumn = determineColNumber(fileContents, matchArray.index);
         const endColumn = determineColNumber(fileContents, endIndex);
         const messagePrefix = `Found the following match for ${lintConfig.name}:`;
+        const hasDocumentation =
+          lintConfig.documentation != null &&
+          lintConfig.documentation.length > 0;
         const message = [
-          messagePrefix,
+          `${messagePrefix}\n`,
           matchValue,
-          ...(lintConfig.documentation != null
-            ? [`Description: ${lintConfig.documentation}`]
+          ...(hasDocumentation
+            ? [`\nDescription:\n${lintConfig.documentation}`]
             : [])
         ].join('\n');
         core.info(
