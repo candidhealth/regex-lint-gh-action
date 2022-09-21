@@ -87,7 +87,7 @@ function parseConfig(config) {
             new RegExp(entry.pattern);
             lintConfigs.push({
                 name: entry.name,
-                pattern: JSON.parse(`"${entry.pattern}"`),
+                pattern: entry.pattern,
                 documentation: entry.documentation,
                 severity: entry.severity,
                 overriddenIncludePaths: entry['overridden-include-paths'],
