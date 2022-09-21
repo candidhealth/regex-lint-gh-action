@@ -203,7 +203,7 @@ async function runLint(
           lintConfig.documentation != null &&
           lintConfig.documentation.length > 0;
         const message = [
-          messagePrefix,
+          `${messagePrefix}\n`,
           matchValue,
           ...(hasDocumentation
             ? [`\nDescription:\n${lintConfig.documentation}`]
