@@ -13,6 +13,6 @@ lint-patterns:
       - '**/*.ts'
     overridden-exclude-paths: []
   - name: Ban rules (period).
-    pattern: "rules\\."
+    pattern: "rules\\\."
     severity: error
     documentation: "I don't like the period symbol."
