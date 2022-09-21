@@ -82,7 +82,7 @@ function parseConfig(config: unknown): {
 
       lintConfigs.push({
         name: entry.name,
-        pattern: entry.pattern,
+        pattern: JSON.parse(`"${entry.pattern}"`),
         documentation: entry.documentation,
         severity: entry.severity,
         overriddenIncludePaths: entry['overridden-include-paths'],
