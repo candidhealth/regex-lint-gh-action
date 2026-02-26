@@ -155,10 +155,8 @@ async function runLint(
     );
   }
 
-  core.info(`Running lint on ${file}...`);
-  const annotations: Annotation[] = [];
-  const fileContents: string = await fs.readFile(file, 'utf8');
-  for (const lintConfig of configuration.lintConfigs) {
+  // Determine which lint rules apply to this file before reading it.
+  const applicableConfigs = configuration.lintConfigs.filter(lintConfig => {
     if (
       !filePassesPathsPattern(
         file,
@@ -171,7 +169,7 @@ async function runLint(
         'exclude'
       )
     ) {
-      continue;
+      return false;
     }
 
     if (
@@ -179,8 +177,26 @@ async function runLint(
       lintConfig.overriddenExcludePaths == null &&
       !passesGlobalPaths
     ) {
-      continue;
+      return false;
     }
+
+    return true;
+  });
+
+  if (applicableConfigs.length === 0) {
+    return [];
+  }
+
+  core.info(`Running lint on ${file}...`);
+  const annotations: Annotation[] = [];
+  let fileContents: string;
+  try {
+    fileContents = await fs.readFile(file, 'utf8');
+  } catch (error) {
+    core.info(`Skipping ${file}: unable to read as text file`);
+    return [];
+  }
+  for (const lintConfig of applicableConfigs) {
 
     const matchArrayIterator = fileContents.matchAll(
       new RegExp(lintConfig.pattern, 'gm') // multi-line mode enabled

@@ -141,19 +141,33 @@ function runLint(file, configuration) {
             core.info(`File did not match globally configured include-exclude paths: ${file}`);
             core.info('Lint configurations will be checked for overriden include-exclude paths.');
         }
-        core.info(`Running lint on ${file}...`);
-        const annotations = [];
-        const fileContents = yield fs_1.promises.readFile(file, 'utf8');
-        for (const lintConfig of configuration.lintConfigs) {
+        // Determine which lint rules apply to this file before reading it.
+        const applicableConfigs = configuration.lintConfigs.filter(lintConfig => {
             if (!filePassesPathsPattern(file, lintConfig.overriddenIncludePaths, 'include') ||
                 !filePassesPathsPattern(file, lintConfig.overriddenExcludePaths, 'exclude')) {
-                continue;
+                return false;
             }
             if (lintConfig.overriddenIncludePaths == null &&
                 lintConfig.overriddenExcludePaths == null &&
                 !passesGlobalPaths) {
-                continue;
+                return false;
             }
+            return true;
+        });
+        if (applicableConfigs.length === 0) {
+            return [];
+        }
+        core.info(`Running lint on ${file}...`);
+        const annotations = [];
+        let fileContents;
+        try {
+            fileContents = yield fs_1.promises.readFile(file, 'utf8');
+        }
+        catch (error) {
+            core.info(`Skipping ${file}: unable to read as text file`);
+            return [];
+        }
+        for (const lintConfig of applicableConfigs) {
             const matchArrayIterator = fileContents.matchAll(new RegExp(lintConfig.pattern, 'gm') // multi-line mode enabled
             );
             for (const matchArray of matchArrayIterator) {
