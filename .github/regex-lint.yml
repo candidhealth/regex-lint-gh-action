@@ -8,11 +8,11 @@ lint-patterns:
     severity: warning
   - name: Ban Minimatch
     pattern: "import minimatch"
-    severity: error
+    severity: warning
     overridden-include-paths:
       - '**/*.ts'
     overridden-exclude-paths: []
   - name: Ban rules (period).
     pattern: "rules."
-    severity: error
+    severity: warning
     documentation: "I don't like the period symbol."

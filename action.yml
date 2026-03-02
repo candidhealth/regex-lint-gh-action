@@ -7,5 +7,5 @@ inputs:
     description: 'The file-path of the configuration file. See the repo README for configuration options.'
     default: '.github/regex-lint.yml'
 runs:
-  using: 'node16'
+  using: 'node20'
   main: 'dist/index.js'
