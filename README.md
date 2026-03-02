@@ -43,6 +43,25 @@ NOTE: A file that matches an include path and an exclude path will be excluded.
 
 A list of file path globs. The list of linted pull request files (minus those removed in the PR) will be checked to be not excluded in all of the specified globs.
 
+### Sample GitHub Actions workflow
+
+```yaml
+name: Regex lint
+on:
+  pull_request:
+
+jobs:
+  regexlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: candidhealth/regex-lint-gh-action@v1.1.2  # or latest version
+        with:
+          file: .github/regex-lint.yml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # required to list files in PR
+```
+
 ### For Demonstration Purposes
 
 Hello!
